@@ -15,10 +15,13 @@ async function compressAndMoveVideo(sourceBucket, fileName) {
   const localOriginalPath = path.join(tempDir, `original-${fileName}`);
   const localCompressedPath = path.join(tempDir, `compressed-${fileName}`);
 
-  await storage
+  const downloadResponse = await storage
     .bucket(sourceBucket)
     .file(fileName)
     .download({ destination: localOriginalPath });
+
+  console.log("downloaded Response is :");
+  console.log(downloadResponse);
 
   await new Promise((resolve, reject) => {
     ffmpeg(localOriginalPath)
