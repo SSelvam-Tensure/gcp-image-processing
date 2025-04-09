@@ -1,35 +1,50 @@
 const { Storage } = require("@google-cloud/storage");
 const ffmpeg = require("fluent-ffmpeg");
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
-const { PassThrough } = require("stream");
+const ffprobePath = require("@ffprobe-installer/ffprobe").path;
+
 const fs = require("fs");
-const path = require("path");
-const os = require("os");
+const tmp = require("tmp");
 
 ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
 
 const storage = new Storage();
 const TARGET_BUCKET = "dev-managebee-cdn";
 
 async function compressAndMoveVideo(sourceBucket, fileName) {
-  const tempDir = os.tmpdir();
-  const localCompressedPath = path.join(tempDir, `compressed-${fileName}`);
+  const [videoBuffer] = await storage
+    .bucket(sourceBucket)
+    .file(fileName)
+    .download();
 
-  const [buffer] = await storage.bucket(sourceBucket).file(fileName).download();
+  const inputTmpFile = tmp.fileSync({ postfix: ".mp4" });
+  const outputTmpFile = tmp.fileSync({ postfix: ".mp4" });
 
-  // Turn buffer into a stream
-  const bufferStream = new PassThrough();
-  bufferStream.end(buffer);
+  fs.writeFileSync(inputTmpFile.name, videoBuffer);
+
+  const videoBitrate = "500k";
+  const audioBitrate = "64k";
+  const maxResolution = 1280;
 
   await new Promise((resolve, reject) => {
-    ffmpeg(bufferStream)
-      .outputOptions(["-vcodec libx264", "-crf 28"])
+    ffmpeg(inputTmpFile.name)
+      .videoCodec("libx264")
+      .audioCodec("aac")
+      .audioBitrate(audioBitrate)
+      .videoBitrate(videoBitrate)
+      .outputOptions(["-preset veryslow", "-crf 23", "-pix_fmt yuv420p"])
+      .size(`${maxResolution}x?`)
       .on("end", resolve)
-      .on("error", reject)
-      .save(localCompressedPath);
+      .on("error", (err, _stdout, stderr) => {
+        console.error("FFmpeg Error:", err.message);
+        console.error("FFmpeg stderr:", stderr);
+        reject(err);
+      })
+      .save(outputTmpFile.name);
   });
 
-  await storage.bucket(TARGET_BUCKET).upload(localCompressedPath, {
+  await storage.bucket(TARGET_BUCKET).upload(outputTmpFile.name, {
     destination: `temp/${fileName}`,
     metadata: {
       contentType: "video/mp4",
@@ -39,7 +54,9 @@ async function compressAndMoveVideo(sourceBucket, fileName) {
 
   await storage.bucket(TARGET_BUCKET).file(`temp/${fileName}`).makePublic();
 
-  fs.unlinkSync(localCompressedPath);
+  // Cleanup
+  inputTmpFile.removeCallback();
+  outputTmpFile.removeCallback();
 
   return `https://storage.googleapis.com/${TARGET_BUCKET}/temp/${fileName}`;
 }
