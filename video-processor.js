@@ -22,7 +22,6 @@ async function compressAndMoveVideo(sourceBucket, fileName) {
 
   await new Promise((resolve, reject) => {
     ffmpeg(localOriginalPath)
-      .format(".mp4")
       .outputOptions(["-vcodec libx264", "-crf 28"])
       .on("end", resolve)
       .on("error", reject)
