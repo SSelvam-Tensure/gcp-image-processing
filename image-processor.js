@@ -1,4 +1,6 @@
 const { Storage } = require("@google-cloud/storage");
+const sharp = require("sharp");
+
 
 const storage = new Storage();
 const TARGET_BUCKET = "dev-managebee-cdn";
