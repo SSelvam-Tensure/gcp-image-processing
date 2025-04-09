@@ -15,7 +15,7 @@ async function getFileMetadata(bucketName, fileName) {
 
 function buildFastify() {
   const app = fastify();
-  
+
   app.post("/", async (request, reply) => {
     try {
       const ceSubject = request.headers["ce-subject"];
@@ -23,6 +23,8 @@ function buildFastify() {
       if (!ceSubject) {
           console.error("Bad Request: missing required header: ce-subject");
       }
+
+      console.log("Started processing data for subject: ", ceSubject)
 
       const { name, bucket, contentType } = request.body;
       const metadata = await getFileMetadata(bucket, name);
@@ -48,6 +50,7 @@ function buildFastify() {
         const publicUrl = await compressAndMoveVideo(bucket, name);
         messageData.publicUrl = publicUrl;
       }
+      console.log("Completed Processing data for subject: ", ceSubject)
     } catch (error) {
       console.error(error);
     }

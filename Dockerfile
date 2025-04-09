@@ -3,6 +3,8 @@ FROM node:20-slim
 
 # Install ClamAV
 # RUN apt-get update && apt-get install -y \
+#     apt-get install -y ffmpeg && \
+#     app-get clean
 #     clamav \
 #     clamav-daemon \
 #     wget
