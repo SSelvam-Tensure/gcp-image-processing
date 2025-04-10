@@ -2,12 +2,7 @@
 FROM node:20-slim
 
 # Install ClamAV
-# RUN apt-get update && apt-get install -y \
-#     apt-get install -y ffmpeg && \
-#     app-get clean
-#     clamav \
-#     clamav-daemon \
-#     wget
+RUN apt-get update && apt-get install -y ffmpeg && apt-get clean
 
 # # Copy the freshclam.conf file with the mirror configuration
 # COPY freshclam.conf /etc/clamav/freshclam.conf
