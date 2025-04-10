@@ -36,12 +36,16 @@ async function compressAndMoveVideo(sourceBucket, fileName) {
     },
   });
 
+  console.log("video uploaded")
+  await storage.bucket(sourceBucket).file(fileName).delete()
   await storage.bucket(TARGET_BUCKET).file(`temp/${fileName}`).makePublic();
 
+  console.log("pre-cleanup")
   // Cleanup
   fs.unlinkSync(inputPath);
   fs.unlinkSync(outputPath);
 
+  console.log("post-cleanup")
 
   return `https://storage.googleapis.com/${TARGET_BUCKET}/temp/${fileName}`;
 }
