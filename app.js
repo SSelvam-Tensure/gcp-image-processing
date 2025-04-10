@@ -30,7 +30,7 @@ function buildFastify() {
       const metadata = await getFileMetadata(bucket, name);
 
       const uploadedTempFile = storage.bucket(bucket).file(name);
-      uploadedTempFile.makePublic();
+      await uploadedTempFile.makePublic();
 
       const messageData = {
         bucket: bucket,
