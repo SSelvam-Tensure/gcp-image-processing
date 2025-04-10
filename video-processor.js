@@ -11,40 +11,16 @@ const storage = new Storage();
 const TARGET_BUCKET = "dev-managebee-cdn";
 
 async function compressAndMoveVideo(sourceBucket, fileName) {
-  const [videoBuffer] = await storage
-    .bucket(sourceBucket)
-    .file(fileName)
-    .download();
-
-  const inputTmpFile = tmp.fileSync({ postfix: ".mp4" });
   const outputTmpFile = tmp.fileSync({ postfix: ".mp4" });
-
-  fs.writeFileSync(inputTmpFile.name, videoBuffer);
-
-  console.log("Input file :", inputTmpFile.name)
-  console.log("Running FFmpeg with input:", inputTmpFile.name);
   console.log("Output file will be:", outputTmpFile.name);
 
+  const inputStream = storage.bucket(sourceBucket).file(fileName).createReadStream();
+  console.log("Streaming started with FFMPEG")
   await new Promise((resolve, reject) => {
-    ffmpeg(inputTmpFile.name)
-    .outputOptions([
-      "-y",
-      "-vcodec libx264",
-      "-crf 28",
-      "-preset veryfast",
-      "-movflags +faststart"
-    ])
-    .on("start", cmd => {
-      console.log("FFmpeg started:", cmd);
-    })
-    .on("progress", p => {
-      console.log("FFmpeg progress:", p);
-    })
-    .on("stderr", line => {
-      console.log("FFmpeg stderr:", line);
-    })
-    .on("end", () => {
-      console.log("FFmpeg finished");
+    ffmpeg(inputStream)
+    .outputOptions(["-vcodec libx264", "-crf 28"])
+    .on("end", () =>{
+      console.log("FFMPEG Completed process")
       resolve();
     })
     .on("error", (err, _stdout, stderr) => {
@@ -54,6 +30,7 @@ async function compressAndMoveVideo(sourceBucket, fileName) {
     })
     .save(outputTmpFile.name);
   });
+  console.log("Streaming Completed with FFMPEG")
   console.log("Output file :", outputTmpFile.name)
 
   await storage.bucket(TARGET_BUCKET).upload(outputTmpFile.name, {
