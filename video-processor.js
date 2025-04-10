@@ -4,19 +4,11 @@ const fs = require("fs");
 
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
-const ffprobePath = require('@ffprobe-installer/ffprobe').path;
-
-
 ffmpeg.setFfmpegPath(ffmpegPath);
-ffmpeg.setFfprobePath(ffprobePath);
 
 
 const storage = new Storage();
 const TARGET_BUCKET = "dev-managebee-cdn";
-
-const videoBitrate = '500k';
-const audioBitrate = '64k';
-const maxResolution = 1280;
 
 async function compressAndMoveVideo(sourceBucket, fileName) {
 
@@ -33,16 +25,16 @@ async function compressAndMoveVideo(sourceBucket, fileName) {
   console.log("FIle Write complete")
   const promiseData = await new Promise((resolve, reject) => {
     ffmpeg(inputTmpFile.name)
-    .videoCodec('libx264')
-    .audioCodec('aac')
-    .audioBitrate(audioBitrate)
-    .videoBitrate(videoBitrate)
     .outputOptions([
-      '-preset veryslow',
-      '-crf 23',
-      '-pix_fmt yuv420p',
+      '-qscale:v 3',
+      '-vf scale=iw:ih'
     ])
-    .size(`${maxResolution}x?`)
+    .on('start', commandLine => {
+      console.log('Spawned FFmpeg with command:', commandLine);
+    })
+    .on('progress', progress => {
+      console.log(`Processing: ${progress.percent?.toFixed(2)}% done`);
+    })
       .on("end", resolve)
       .on("error", reject)
       .save(outputTmpFile.name);
