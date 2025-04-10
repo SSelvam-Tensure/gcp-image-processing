@@ -25,7 +25,8 @@ function buildFastify() {
           console.error("Bad Request: missing required header: ce-subject");
           return reply.status(400).send({ error: "Missing ce-subject header" });
       }
-
+      const { name, bucket, contentType } = request.body;
+      
       console.log("Started processing data for subject: ", ceSubject)
       reply.code(202).send({
         message: 'Event received. File processing started.',
@@ -35,8 +36,6 @@ function buildFastify() {
 
       await (async () => {
         try {
-
-          const { name, bucket, contentType } = request.body;
           const metadata = await getFileMetadata(bucket, name);
 
           const uploadedTempFile = storage.bucket(bucket).file(name);
