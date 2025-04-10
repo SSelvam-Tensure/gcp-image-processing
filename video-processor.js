@@ -25,15 +25,15 @@ async function compressAndMoveVideo(sourceBucket, fileName) {
   fs.writeFileSync(outputTmpFile.name, fileBuffer);
 
   console.log("FIle Write complete")
-  // const promiseData = await new Promise((resolve, reject) => {
-  //   ffmpeg(inputTmpFile.name)
-  //     .output(outputTmpFile.name)
-  //     .outputOptions(["-vcodec libx264", "-crf 28"])
-  //     .on("end", resolve)
-  //     .on("error", reject)
-  //     .save(outputTmpFile.name);
-  // });
-  // console.log("PromiseData: ",promiseData)
+  const promiseData = await new Promise((resolve, reject) => {
+    ffmpeg(inputTmpFile.name)
+      .output(outputTmpFile.name)
+      .outputOptions(["-vcodec libx264", "-crf 28"])
+      .on("end", resolve)
+      .on("error", reject)
+      .save(outputTmpFile.name);
+  });
+  console.log("PromiseData: ",promiseData)
   console.log("video convereted")
 
   await storage.bucket(TARGET_BUCKET).upload(outputTmpFile.name, {
