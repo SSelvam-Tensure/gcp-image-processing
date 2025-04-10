@@ -11,6 +11,8 @@ const storage = new Storage();
 const TARGET_BUCKET = "dev-managebee-cdn";
 
 async function compressAndMoveVideo(sourceBucket, fileName) {
+
+  console.log({sourceBucket, fileName})
   const outputTmpFile = tmp.fileSync({ postfix: ".mp4" });
   console.log("Output file will be:", outputTmpFile.name);
 
@@ -31,6 +33,7 @@ async function compressAndMoveVideo(sourceBucket, fileName) {
     .save(outputTmpFile.name);
   });
   console.log("Streaming Completed with FFMPEG")
+
   console.log("Output file :", outputTmpFile.name)
 
   await storage.bucket(TARGET_BUCKET).upload(outputTmpFile.name, {
@@ -44,7 +47,6 @@ async function compressAndMoveVideo(sourceBucket, fileName) {
   await storage.bucket(TARGET_BUCKET).file(`temp/${fileName}`).makePublic();
 
   // Cleanup
-  inputTmpFile.removeCallback();
   outputTmpFile.removeCallback();
 
   return `https://storage.googleapis.com/${TARGET_BUCKET}/temp/${fileName}`;
