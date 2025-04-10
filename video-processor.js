@@ -22,13 +22,14 @@ async function compressAndMoveVideo(sourceBucket, fileName) {
 
   fs.writeFileSync(inputTmpFile.name, fileBuffer);
 
+  console.log("FIle download complete")
   const promiseData = await new Promise((resolve, reject) => {
     ffmpeg(inputTmpFile.name)
       .output(outputTmpFile.name)
       .outputOptions(["-vcodec libx264", "-crf 28"])
       .on("end", resolve)
       .on("error", reject)
-      .save(outputTmpFile);
+      .save(outputTmpFile.name);
   });
   console.log("PromiseData: ",promiseData)
   console.log("video convereted")
