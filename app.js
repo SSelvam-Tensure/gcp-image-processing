@@ -26,6 +26,7 @@ function buildFastify() {
       }
 
       console.log("Started processing data for subject: ", ceSubject)
+      reply.status(200).send({message : "Processing started"})
 
       const { name, bucket, contentType } = request.body;
       const metadata = await getFileMetadata(bucket, name);
@@ -52,10 +53,10 @@ function buildFastify() {
         messageData.publicUrl = publicUrl;
       }
       console.log("Completed Processing data for subject: ", ceSubject)
-      return reply.status(200).send({message : "Processing completed"})
+      reply.status(200).send({message : "Processing completed"})
     } catch (error) {
       console.error(error);
-      return reply.status(500).send({ error: "Internal Server Error" });
+      reply.status(500).send({ error: "Internal Server Error" });
     }
   });
 
