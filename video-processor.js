@@ -22,16 +22,37 @@ async function compressAndMoveVideo(sourceBucket, fileName) {
   fs.writeFileSync(inputTmpFile.name, videoBuffer);
 
   console.log("Input file :", inputTmpFile.name)
+  console.log("Running FFmpeg with input:", inputTmpFile.name);
+  console.log("Output file will be:", outputTmpFile.name);
+
   await new Promise((resolve, reject) => {
     ffmpeg(inputTmpFile.name)
-      .outputOptions(["-vcodec libx264", "-crf 28"])
-      .on("end", resolve)
-      .on("error", (err, _stdout, stderr) => {
-        console.error("FFmpeg Error:", err.message);
-        console.error("FFmpeg stderr:", stderr);
-        reject(err);
-      })
-      .save(outputTmpFile.name)
+    .outputOptions([
+      "-y",
+      "-vcodec libx264",
+      "-crf 28",
+      "-preset veryfast",
+      "-movflags +faststart"
+    ])
+    .on("start", cmd => {
+      console.log("FFmpeg started:", cmd);
+    })
+    .on("progress", p => {
+      console.log("FFmpeg progress:", p);
+    })
+    .on("stderr", line => {
+      console.log("FFmpeg stderr:", line);
+    })
+    .on("end", () => {
+      console.log("FFmpeg finished");
+      resolve();
+    })
+    .on("error", (err, _stdout, stderr) => {
+      console.error("FFmpeg Error:", err.message);
+      console.error("FFmpeg stderr:", stderr);
+      reject(err);
+    })
+    .save(outputTmpFile.name);
   });
   console.log("Output file :", outputTmpFile.name)
 
