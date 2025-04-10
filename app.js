@@ -22,6 +22,7 @@ function buildFastify() {
 
       if (!ceSubject) {
           console.error("Bad Request: missing required header: ce-subject");
+          return reply.status(400).send({ error: "Missing ce-subject header" });
       }
 
       console.log("Started processing data for subject: ", ceSubject)
@@ -51,8 +52,10 @@ function buildFastify() {
         messageData.publicUrl = publicUrl;
       }
       console.log("Completed Processing data for subject: ", ceSubject)
+      return reply.status(200).send({message : "Processing completed"})
     } catch (error) {
       console.error(error);
+      return reply.status(500).send({ error: "Internal Server Error" });
     }
   });
 
