@@ -26,7 +26,7 @@ function buildFastify() {
           return reply.status(400).send({ error: "Missing ce-subject header" });
       }
       const { name, bucket, contentType } = request.body;
-      
+
       console.log("Started processing data for subject: ", ceSubject)
       reply.code(202).send({
         message: 'Event received. File processing started.',
@@ -59,6 +59,8 @@ function buildFastify() {
             const publicUrl = await compressAndMoveVideo(bucket, name);
             messageData.publicUrl = publicUrl;
           }
+          console.log("Completed processing data for subject: ", ceSubject)
+          console.log(JSON.stringify(messageData))
         } catch (err) {
           console.error(`Background error processing file ${name}:`, err);
         }

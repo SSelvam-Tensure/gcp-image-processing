@@ -1,16 +1,22 @@
 const { Storage } = require("@google-cloud/storage");
 const tmp = require('tmp');
+const fs = require("fs");
 
 const ffmpeg = require('fluent-ffmpeg');
-const fs = require("fs");
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+const ffprobePath = require('@ffprobe-installer/ffprobe').path;
+
+
 ffmpeg.setFfmpegPath(ffmpegPath);
-// const ffprobePath = require('@ffprobe-installer/ffprobe').path;
-// ffmpeg.setFfprobePath(ffprobePath);
+ffmpeg.setFfprobePath(ffprobePath);
+
 
 const storage = new Storage();
-
 const TARGET_BUCKET = "dev-managebee-cdn";
+
+const videoBitrate = '500k';
+const audioBitrate = '64k';
+const maxResolution = 1280;
 
 async function compressAndMoveVideo(sourceBucket, fileName) {
 
@@ -27,7 +33,16 @@ async function compressAndMoveVideo(sourceBucket, fileName) {
   console.log("FIle Write complete")
   const promiseData = await new Promise((resolve, reject) => {
     ffmpeg(inputTmpFile.name)
-      .outputOptions(["-vcodec libx264", "-crf 28"])
+    .videoCodec('libx264')
+    .audioCodec('aac')
+    .audioBitrate(audioBitrate)
+    .videoBitrate(videoBitrate)
+    .outputOptions([
+      '-preset veryslow',
+      '-crf 23',
+      '-pix_fmt yuv420p',
+    ])
+    .size(`${maxResolution}x?`)
       .on("end", resolve)
       .on("error", reject)
       .save(outputTmpFile.name);
