@@ -1,10 +1,12 @@
 const fastify = require("fastify");
 
 const { Storage } = require("@google-cloud/storage");
+const { PubSub } = require("@google-cloud/pubsub");
 
 const { compressAndMoveImage } = require("./image-processor");
 const { compressAndMoveVideo } = require("./video-processor");
 
+const pubSubClient = new PubSub();
 const storage = new Storage();
 
 async function getFileMetadata(bucketName, fileName) {
@@ -61,6 +63,10 @@ function buildFastify() {
           }
           console.log("Completed processing data for subject: ", ceSubject)
           console.log(JSON.stringify(messageData))
+
+          const dataBuffer = Buffer.from(JSON.stringify(messageData));
+          await pubSubClient.topic("test-file-upload").publishMessage({ data: dataBuffer });
+
         } catch (err) {
           console.error(`Background error processing file ${name}:`, err);
         }
