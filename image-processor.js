@@ -25,7 +25,7 @@ async function compressAndMoveImage(sourceBucket, fileName) {
 
   await targetFile.makePublic();
 
-  return `https://storage.googleapis.com/${TARGET_BUCKET}/${fileName}`;
+  return `https://storage.googleapis.com/${TARGET_BUCKET}/temp/${fileName}`;
 }
 
 
